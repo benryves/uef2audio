@@ -160,11 +160,13 @@ const convertUef = arrayBuffer => {
 			}
 		};
 		
+		var title = 'uef2audio';
+		
 		uef.chunks.forEach(chunk => {
 			switch (chunk.id) {
 				case 0x0009: {
 					// Short title
-					const title = readString(chunk.data, 0, chunk.data.byteLength);
+					title = readString(chunk.data, 0, chunk.data.byteLength);
 				} break;
 				case 0x0100: {
 					// Implicit start/stop bit tape data block
@@ -276,7 +278,7 @@ const convertUef = arrayBuffer => {
 	// Return the parsed UEF and the wave file
 	return {
 		uef : uef,
-		wave : new Blob([waveBuffer], { type: 'audio/wav' })
+		wave : new File([waveBuffer], title + '.wav', { type: 'audio/wav' })
 	};
 };
 
@@ -295,6 +297,7 @@ const processAudioTag = audioTag => {
 				const updateAudioTag = uef => {
 					audioTag.src = URL.createObjectURL(uef.wave);
 					const a = document.createElement('a');
+					a.download = uef.wave.name;
 					a.href = audioTag.src;
 					audioTag.parentNode.appendChild(a);
 				};
