@@ -41,7 +41,7 @@ const convertUef = arrayBuffer => {
 	// Wave file properties
 	const sampleRate = 44100;
 	const bitsPerSample = 16;
-	const channelCount = 1;
+	const channelCount = 2;
 	
 	const blockAlign = channelCount * bitsPerSample / 8;
 	const byteRate = sampleRate * blockAlign;
@@ -101,7 +101,9 @@ const convertUef = arrayBuffer => {
 			for (let i = 0; i < count; ++i) {
 				let a = (((phase + offset) / 360) + (i * cycles / count)) * (2 * Math.PI);
 				let v = Math.floor(Math.sin(a) * 0x7FFF);
-				waveDataView.setInt16(i * blockAlign, v, true);
+				for (let c = 0; c < channelCount; ++c) {
+					waveDataView.setInt16(i * blockAlign + c * bitsPerSample / 8, v, true);
+				}
 			}
 			return new Uint8Array(waveBuffer);
 		};
@@ -295,8 +297,8 @@ const processAudioTag = audioTag => {
 		// Fetch the UEF data with XMLHttpRequest
 		const request = new XMLHttpRequest();
 		request.open('GET', sources[0].src, true);
-    	request.responseType = 'arraybuffer';
-    	request.onload = () => {
+		request.responseType = 'arraybuffer';
+		request.onload = () => {
 			if (request.status == 200) {
 				// Routine to update the audio tag with the parsed UEF
 				const updateAudioTag = uef => {
@@ -333,10 +335,10 @@ const processAudioTag = audioTag => {
 			}
 		};
 		request.send(null);
-    }
+	}
 };
 
 // Process all audio tags on the page
 window.addEventListener('DOMContentLoaded', () => {
-    [...document.getElementsByTagName('audio')].forEach(processAudioTag);
+	[...document.getElementsByTagName('audio')].forEach(processAudioTag);
 });
